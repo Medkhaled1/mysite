@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: mysite-postgres
+    environment:
+      POSTGRES_DB: mysite_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mysite-network
+    ports:
+      - "5432:5432"
+
+  django:
+    build:
+      context: .
+    container_name: mysite-django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - mysite-network
+    environment:
+      POSTGRES_DB: mysite_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_HOST: postgres  # Name of the PostgreSQL container
+      POSTGRES_PORT: 5432
+
+volumes:
+  postgres_data:
+
+networks:
+  mysite-network:
