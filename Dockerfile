@@ -1,27 +1,23 @@
 # Use a base image with Python
 FROM python:3.10-slim
 
-# Set the working directory inside the container, it be used for data persistence 'volume'
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the requirements.txt file inside the docker container /app
+# Copy the requirements.txt file inside the container
 COPY requirements.txt .
 
-# Install dependencies. --no-cache-dir: Ensures that pip doesn't store downloaded files in the container, helping to reduce the size of the final image.
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project files from local machine currentdirectory to the container's directory (/app)
+# Copy the rest of the project files into the container
 COPY . .
 
-# This environment variable ensures that Python output is not buffered, meaning logs and print statements will be immediately visible in the container's output
+# Set environment variable to prevent Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED 1
 
-# Expose the port Django runs on (development)
+# Expose the port Gunicorn will run on
 EXPOSE 8000
 
-# Optionally, set environment variables for production (e.g., DEBUG, DATABASE_URL)
-# ENV DEBUG=False
-# ENV DATABASE_URL=postgres://user:password@db:5432/mydatabase
-
-# Run the Django development server (for development, change for production)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run Gunicorn for production with 3 worker processes
+CMD ["gunicorn", "mysite.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
